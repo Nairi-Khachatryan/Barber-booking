@@ -1,4 +1,5 @@
 require('dotenv').config();
+const { MongoClient } = require('mongodb');
 const TelegramBot = require('node-telegram-bot-api');
 
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
@@ -10,8 +11,6 @@ const buttonText = {
   settings: 'Настройки',
 };
 
-// save button names into Objects
-
 const listTimeButtons = {
   button_1: '12:00',
   button_2: '13:00',
@@ -21,10 +20,32 @@ const listTimeButtons = {
   button_6: '17:00',
 };
 
-// listener for start button
-bot.onText(/\/start/, (msg) => {
-  const chatId = msg.chat.id;
+const uri = process.env.MONGODB_URI; // Убедись, что MONGODB_URI определена в .env
+const client = new MongoClient(uri); // Просто передаем URI без дополнительных параметров
 
+async function saveAppointment(chatId, userName, selectedTime) {
+  try {
+    await client.connect();
+    const database = client.db('telegram_bot');
+    const appointments = database.collection('appointments');
+    await appointments.insertOne({
+      chatId,
+      userName,
+      selectedTime,
+      timestamp: new Date(),
+    });
+    console.log(`Запись сохранена: ${userName} - ${selectedTime}`);
+  } catch (error) {
+    console.error('Ошибка при сохранении в MongoDB:', error);
+  } finally {
+    await client.close();
+  }
+}
+
+bot.onText(/\/start/, (msg) => {
+  console.log('Mongo Connect');
+
+  const chatId = msg.chat.id;
   const options = {
     reply_markup: {
       inline_keyboard: Object.keys(buttonText).map((key) => [
@@ -32,16 +53,10 @@ bot.onText(/\/start/, (msg) => {
       ]),
     },
   };
-
   bot.sendMessage(chatId, 'Выберите кнопку:', options);
 });
 
-// Общий обработчик callback_query
 bot.on('callback_query', async (query) => {
-
-  // console.log(query)
-  //query big objects with more data
-
   const chatId = query.message.chat.id;
   const userName =
     query.from.first_name || query.from.username || 'Неизвестный пользователь';
@@ -50,20 +65,22 @@ bot.on('callback_query', async (query) => {
     listTimeButtons[query.data] ||
     'Неизвестная кнопка';
 
-  // Если нажали "Посмотреть расписание", показываем список времени
   if (query.data === 'watch') {
     const options = {
       reply_markup: {
         inline_keyboard: Object.keys(listTimeButtons).map((key) => [
-          { text: listTimeButtons[key], callback_data: key }, // Исправил ошибку тут
+          { text: listTimeButtons[key], callback_data: key },
         ]),
       },
     };
-
     return bot.sendMessage(chatId, 'Выберите время:', options);
   }
 
-// send message to the Telegram Chanel
+  if (listTimeButtons[query.data]) {
+    await saveAppointment(chatId, userName, listTimeButtons[query.data]);
+    bot.sendMessage(chatId, `Вы записались на ${listTimeButtons[query.data]}`);
+  }
+
   try {
     await bot.sendMessage(
       CHANNEL_ID,
