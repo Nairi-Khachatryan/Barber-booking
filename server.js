@@ -3,7 +3,7 @@ require('dotenv').config();
 const TelegramBot = require('node-telegram-bot-api');
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
 
-const {saveAppointment, cancelAppointment } = require('./db');
+const { saveAppointment, cancelAppointment } = require('./db');
 const { buttonText, listTimeButtons } = require('./buttons');
 const CHANNEL_ID = process.env.CHANNEL_ID;
 
@@ -45,9 +45,11 @@ bot.on('callback_query', async (query) => {
 
     const result = await saveAppointment(chatId, userName, selectedTime, bot);
     if (result) {
+      console.log('result', result)
       await bot.sendMessage(
         CHANNEL_ID,
         `Пользователь ${userName} записался на: ${selectedTime}`
+
       );
       console.log(`Уведомление отправлено: ${userName} - ${selectedTime}`);
     }
@@ -55,6 +57,4 @@ bot.on('callback_query', async (query) => {
 
   bot.answerCallbackQuery(query.id, { text: 'Вы нажали кнопку!' });
 });
-
-
 console.log('Бот запущен...');

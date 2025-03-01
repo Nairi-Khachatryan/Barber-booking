@@ -48,7 +48,6 @@ async function cancelAppointment(chatId, bot) {
     const database = client.db('telegram_bot');
     const appointments = database.collection('appointments');
 
-    // Ищем запись пользователя
     const existingAppointment = await appointments.findOne({ chatId });
 
     if (!existingAppointment) {
@@ -61,10 +60,19 @@ async function cancelAppointment(chatId, bot) {
       console.log(
         `✅ Запись отменена: ${existingAppointment.userName} - ${existingAppointment.selectedTime}`
       );
-      return bot.sendMessage(
+
+      await bot.sendMessage(
         chatId,
         `Ваша запись на ${existingAppointment.selectedTime} была отменена.`
       );
+
+      // Отправляем уведомление в канал
+      await bot.sendMessage(
+        process.env.CHANNEL_ID,
+        `Пользователь ${existingAppointment.userName} отменил запись на ${existingAppointment.selectedTime}.`
+      );
+
+      return;
     } else {
       return bot.sendMessage(chatId, 'Ошибка при удалении записи.');
     }
