@@ -21,10 +21,11 @@ async function saveAppointment(chatId, userName, selectedTime, bot) {
 
     if (existingAppointment) {
       if (existingAppointment.chatId === chatId) {
-        return bot.sendMessage(chatId, ' ❌ Вы уже записаны на это время!');
+        await bot.sendMessage(chatId, ' ❌ Вы уже записаны на это время!');
       } else {
-        return bot.sendMessage(chatId, ' ❌  Это время уже занято!');
+        await bot.sendMessage(chatId, ' ❌ Это время уже занято!');
       }
+      return false; // <-- Возвращаем false, чтобы дальше ничего не выполнялось
     }
 
     // Если слот свободен, записываем пользователя

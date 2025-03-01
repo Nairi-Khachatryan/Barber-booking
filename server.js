@@ -44,13 +44,16 @@ bot.on('callback_query', async (query) => {
     const selectedTime = listTimeButtons[query.data];
 
     const result = await saveAppointment(chatId, userName, selectedTime, bot);
+
     if (result) {
-      console.log('result', result)
+      const userName = query.from.username || query.from.first_name;
+      ('Неизвестный пользователь');
+      // Теперь result будет false, если время занято
       await bot.sendMessage(
         CHANNEL_ID,
-        `🧑 Пользователь ${userName} ⏰  записался на: ${selectedTime} ✅  `
-
+        `🧑 Пользователь @${userName} записался на: ⏰ ${selectedTime} ✅`
       );
+
       console.log(`Уведомление отправлено: ${userName} - ${selectedTime}`);
     }
   }
