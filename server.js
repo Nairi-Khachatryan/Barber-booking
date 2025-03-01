@@ -17,7 +17,7 @@ bot.onText(/\/start/, (msg) => {
       ]),
     },
   };
-  bot.sendMessage(chatId, 'Выберите кнопку:', options);
+  bot.sendMessage(chatId, 'Выберите кнопку: ✅ ', options);
 });
 
 bot.on('callback_query', async (query) => {
@@ -33,7 +33,7 @@ bot.on('callback_query', async (query) => {
         ]),
       },
     };
-    return bot.sendMessage(chatId, 'Выберите время:', options);
+    return bot.sendMessage(chatId, 'Выберите время: ⏰ ', options);
   }
 
   if (query.data === 'cancel') {
@@ -48,13 +48,13 @@ bot.on('callback_query', async (query) => {
       console.log('result', result)
       await bot.sendMessage(
         CHANNEL_ID,
-        `Пользователь ${userName} записался на: ${selectedTime}`
+        `🧑 Пользователь ${userName} ⏰  записался на: ${selectedTime} ✅  `
 
       );
       console.log(`Уведомление отправлено: ${userName} - ${selectedTime}`);
     }
   }
 
-  bot.answerCallbackQuery(query.id, { text: 'Вы нажали кнопку!' });
+  bot.answerCallbackQuery(query.id, { text: 'Вы нажали кнопку! ✅  ' });
 });
 console.log('Бот запущен...');

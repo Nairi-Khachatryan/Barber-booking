@@ -21,9 +21,9 @@ async function saveAppointment(chatId, userName, selectedTime, bot) {
 
     if (existingAppointment) {
       if (existingAppointment.chatId === chatId) {
-        return bot.sendMessage(chatId, 'Вы уже записаны на это время!');
+        return bot.sendMessage(chatId, ' ❌ Вы уже записаны на это время!');
       } else {
-        return bot.sendMessage(chatId, 'Это время уже занято!');
+        return bot.sendMessage(chatId, ' ❌  Это время уже занято!');
       }
     }
 
@@ -35,10 +35,14 @@ async function saveAppointment(chatId, userName, selectedTime, bot) {
       timestamp: new Date(),
     });
 
-    console.log(`✅ Запись сохранена: ${userName} - ${selectedTime}`);
+    console.log(`Запись сохранена: ${userName} - ${selectedTime}`);
+    bot.sendMessage(
+      chatId,
+      ` 🧑 Пользователь ${userName} записан на: ${selectedTime} ✅ `
+    );
     return true;
   } catch (error) {
-    console.error('❌ Ошибка при сохранении в MongoDB:', error);
+    console.error('Ошибка при сохранении в MongoDB:', error);
     return false;
   }
 }
@@ -51,25 +55,25 @@ async function cancelAppointment(chatId, bot) {
     const existingAppointment = await appointments.findOne({ chatId });
 
     if (!existingAppointment) {
-      return bot.sendMessage(chatId, 'У вас нет записей для отмены.');
+      return bot.sendMessage(chatId, ' ⏰  У вас нет записей для отмены.');
     }
 
     const deleted = await appointments.deleteOne({ chatId });
 
     if (deleted.deletedCount > 0) {
       console.log(
-        `✅ Запись отменена: ${existingAppointment.userName} - ${existingAppointment.selectedTime}`
+        `✅ Запись отменена: ${existingAppointment.userName} - ${existingAppointment.selectedTime} ⏰ `
       );
 
       await bot.sendMessage(
         chatId,
-        `Ваша запись на ${existingAppointment.selectedTime} была отменена.`
+        ` ⏰  Ваша запись на ${existingAppointment.selectedTime} была отменена. ❌ `
       );
 
       // Отправляем уведомление в канал
       await bot.sendMessage(
         process.env.CHANNEL_ID,
-        `Пользователь ${existingAppointment.userName} отменил запись на ${existingAppointment.selectedTime}.`
+        `🧑 Пользователь ${existingAppointment.userName} отменил запись на ${existingAppointment.selectedTime} ⏰ .`
       );
 
       return;
@@ -77,8 +81,8 @@ async function cancelAppointment(chatId, bot) {
       return bot.sendMessage(chatId, 'Ошибка при удалении записи.');
     }
   } catch (error) {
-    console.error('❌ Ошибка при удалении из MongoDB:', error);
-    return bot.sendMessage(chatId, 'Произошла ошибка при отмене записи.');
+    console.error(' ❌ Ошибка при удалении из MongoDB:', error);
+    return bot.sendMessage(chatId, ' ❌  Произошла ошибка при отмене записи.');
   }
 }
 
